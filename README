@@ -1,0 +1,28 @@
+SLAM_Gmapping 的分析文件
+1,如何拷贝本项目到本地
+	git clone https://github.com/MOIRobot/SLAM_Gmapping.git
+	或者
+	使用SSH (针对本项目成员) 需要添加密钥到你的profile
+	git clone git@github.com:MOIRobot/SLAM_Gmapping.git
+	
+2,如何添加 ssh 密钥
+	$ssh-keygen -t rsa -C "your_email@example.com"
+	then
+	$cd ~/.ssh
+	$ls
+	找到id_rad.pub 复制其中的内容到你的账户上的ssh密钥区域
+
+
+1,how to copy this project to local computer?
+	git clone https://github.com/MOIRobot/SLAM_Gmapping.git
+	OR
+	Use SSH but this is only for robot members
+	git clone git@github.com:MOIRobot/SLAM_Gmapping.git
+	
+2,how to add ssh secret keys?
+	$ssh-keygen -t rsa -C "your_email@example.com"
+	then
+	$cd ~/.ssh
+	$ls
+	find the id_rsa.pub file copy the context to the github accout profile 
+
