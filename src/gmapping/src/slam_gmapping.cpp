@@ -53,11 +53,11 @@ Reads the following parameters from the parameter server
 
 Parameters used by our GMapping wrapper:
 
-- @b "~throttle_scans": @b [int] throw away every nth laser scan
+- @b "~throttle_scans": @b [int] throw away every nth laser scan　没什么用
 - @b "~base_frame": @b [string] the tf frame_id to use for the robot base pose
 - @b "~map_frame": @b [string] the tf frame_id where the robot pose on the map is published
 - @b "~odom_frame": @b [string] the tf frame_id from which odometry is read
-- @b "~map_update_interval": @b [double] time in seconds between two recalculations of the map
+- @b "~map_update_interval": @b [double] time in seconds between two recalculations of the map 更新地图用　不影响精度
 
 
 Parameters used by GMapping itself:
@@ -82,10 +82,10 @@ Motion Model Parameters (all standard deviations of a gaussian noise model)
 - @b "~/str" @b [double] angular -> linear noise component
 
 Others:
-- @b "~/linearUpdate" @b [double] the robot only processes new measurements if the robot has moved at least this many meters
-- @b "~/angularUpdate" @b [double] the robot only processes new measurements if the robot has turned at least this many rads
+- @b "~/linearUpdate" @b [double] the robot only processes new measurements if the robot has moved at least this many meters　机器人没走多少米添加一束激光
+- @b "~/angularUpdate" @b [double] the robot only processes new measurements if the robot has turned at least this many rads　　机器人每旋转多少添加一束激光
 
-- @b "~/resampleThreshold" @b [double] threshold at which the particles get resampled. Higher means more frequent resampling.
+- @b "~/resampleThreshold" @b [double] threshold at which the particles get resampled. Higher means more frequent resampling.　重采样阈值　越大冲重采样越多　
 - @b "~/particles" @b [int] (fixed) number of particles. Each particle represents a possible trajectory that the robot has traveled
 
 Likelihood sampling (used in scan matching)
@@ -544,7 +544,7 @@ SlamGMapping::initMapper(const sensor_msgs::LaserScan& scan)
 bool
 SlamGMapping::addScan(const sensor_msgs::LaserScan& scan, GMapping::OrientedPoint& gmap_pose)
 {
-  if(!getOdomPose(gmap_pose, scan.header.stamp)) //得到机器人的位置
+  if(!getOdomPose(gmap_pose, scan.header.stamp)) //得到雷达的位置
      return false;
   
   if(scan.ranges.size() != gsp_laser_beam_count_)
@@ -586,7 +586,7 @@ SlamGMapping::addScan(const sensor_msgs::LaserScan& scan, GMapping::OrientedPoin
   // need to keep our array around.
   delete[] ranges_double;
 
-  reading.setPose(gmap_pose);//传入机器人的位置
+  reading.setPose(gmap_pose);//传入雷达的位置应该
 
   /*
   ROS_DEBUG("scanpose (%.3f): %.3f %.3f %.3f\n",
@@ -610,10 +610,10 @@ SlamGMapping::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan)
     return;
   //添加的　得到机器人当前的旋转速度
   tf::Stamped<tf::Pose> robot_vel;
-    odom_helper_.getRobotVel(robot_vel);
+   odom_helper_.getRobotVel(robot_vel);
   double vel_yaw = tf::getYaw(robot_vel.getRotation());
   
-  if(vel_yaw>(vth_degree_*3.1415/180)) return;//大于多少度每秒　机器人丢弃雷达数据
+  if(fabs(vel_yaw)>(vth_degree_*3.1415/180)) return;//大于多少度每秒　机器人丢弃雷达数据
   
   static ros::Time last_map_update(0,0);
 
@@ -639,9 +639,10 @@ pay attention： addScan这个函数*要转到pf的核心代码了 ，将调用p
 
     //得到最优粒子
     GMapping::OrientedPoint mpose = gsp_->getParticles()[gsp_->getBestParticleIndex()].pose; //gsp_ slam 核心对象
+    /*
     ROS_DEBUG("new best pose: %.3f %.3f %.3f", mpose.x, mpose.y, mpose.theta);
     ROS_DEBUG("odom pose: %.3f %.3f %.3f", odom_pose.x, odom_pose.y, odom_pose.theta);
-    ROS_DEBUG("correction: %.3f %.3f %.3f", mpose.x - odom_pose.x, mpose.y - odom_pose.y, mpose.theta - odom_pose.theta);
+    ROS_DEBUG("correction: %.3f %.3f %.3f", mpose.x - odom_pose.x, mpose.y - odom_pose.y, mpose.theta - odom_pose.theta);*/
 
     tf::Transform laser_to_map = tf::Transform(tf::createQuaternionFromRPY(0, 0, mpose.theta), tf::Vector3(mpose.x, mpose.y, 0.0)).inverse();
     tf::Transform odom_to_laser = tf::Transform(tf::createQuaternionFromRPY(0, 0, odom_pose.theta), tf::Vector3(odom_pose.x, odom_pose.y, 0.0));
@@ -650,11 +651,11 @@ pay attention： addScan这个函数*要转到pf的核心代码了 ，将调用p
     map_to_odom_ = (odom_to_laser * laser_to_map).inverse();
     map_to_odom_mutex_.unlock();
 
-    if(!got_map_ || (scan->header.stamp - last_map_update) > map_update_interval_)
+    if(!got_map_ || (scan->header.stamp - last_map_update) > map_update_interval_) //到达一定时间才更新地图　map_update_interval_　地图更新间隔
     {
       //更新地图
       updateMap(*scan);
-      last_map_update = scan->header.stamp;
+      last_map_update = scan->header.stamp;//更新时间戳
       ROS_DEBUG("Updated the map");
     }
   } else
@@ -687,7 +688,7 @@ SlamGMapping::updateMap(const sensor_msgs::LaserScan& scan)
 {
   ROS_DEBUG("Update map");
   boost::mutex::scoped_lock map_lock (map_mutex_);
-  GMapping::ScanMatcher matcher;
+  GMapping::ScanMatcher matcher;//做一个地图匹配器
 
   matcher.setLaserParameters(scan.ranges.size(), &(laser_angles_[0]),
                              gsp_laser_->getPose());
