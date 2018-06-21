@@ -26,3 +26,9 @@ SLAM_Gmapping 的分析文件
 	$ls
 	find the id_rsa.pub file copy the context to the github accout profile 
 
+SLAM KartoG2o
+http://sauravag.com/2017/07/an-practical-introduction-to-pose-graph-slam/
+
+https://github.com/sauravag/slam_karto_gtsam
+https://github.com/sauravag/slam_karto_sesync
+https://github.com/sauravag/slam_karto_g2o
