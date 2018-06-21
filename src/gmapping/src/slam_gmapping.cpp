@@ -64,7 +64,7 @@ Parameters used by GMapping itself:
 
 Laser Parameters:
 - @b "~/maxRange" @b [double] maximum range of the laser scans. Rays beyond this range get discarded completely. (default: maximum laser range minus 1 cm, as received in the the first LaserScan message) 最大范围激光距离 超出的则会被丢弃
-- @b "~/maxUrange" @b [double] maximum range of the laser scanner that is used for map building (default: same as maxRange)
+- @b "~/maxUrange" @b [double] maximum range of the laser scanner that is used for map building (default: same as maxRange)用来创建地图的激光最大可用距离
 - @b "~/sigma" @b [double] standard deviation for the scan matching process (cell) 标准差 deviation 偏差
 - @b "~/kernelSize" @b [int] search window for the scan matching process 搜寻范围
 - @b "~/lstep" @b [double] initial search step for scan matching (linear) 初始搜寻step 线性
@@ -518,7 +518,7 @@ SlamGMapping::initMapper(const sensor_msgs::LaserScan& scan)
                               kernelSize_, lstep_, astep_, iterations_,
                               lsigma_, ogain_, lskip_);
 
-  gsp_->setMotionModelParameters(srr_, srt_, str_, stt_);
+  gsp_->setMotionModelParameters(srr_, srt_, str_, stt_);//里程计模型参数传入
   gsp_->setUpdateDistances(linearUpdate_, angularUpdate_, resampleThreshold_);
   gsp_->setUpdatePeriod(temporalUpdate_);
   gsp_->setgenerateMap(false);
@@ -544,7 +544,7 @@ SlamGMapping::initMapper(const sensor_msgs::LaserScan& scan)
 bool
 SlamGMapping::addScan(const sensor_msgs::LaserScan& scan, GMapping::OrientedPoint& gmap_pose)
 {
-  if(!getOdomPose(gmap_pose, scan.header.stamp)) //得到雷达的位置
+  if(!getOdomPose(gmap_pose, scan.header.stamp)) //得到里程计的位置
      return false;
   
   if(scan.ranges.size() != gsp_laser_beam_count_)
